@@ -1,10 +1,37 @@
 from fastapi import FastAPI, HTTPException
-from sqlalchemy import create_engine, text
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from sqlalchemy import text
 
+from app.api import audit_logs, auth, users
 from app.config import settings
+from app.database import engine
+from app.ratelimit import limiter
 
-app = FastAPI(title="NetSentry AI", version="0.1.0")
-engine = create_engine(settings.database_url, pool_pre_ping=True)
+app = FastAPI(title="NetSentry AI", version="0.2.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET", "POST", "PATCH"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(audit_logs.router)
 
 
 @app.get("/health")

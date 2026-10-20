@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     secret_key: str
     access_token_minutes: int = 15
     refresh_token_days: int = 7
+    login_rate_limit: str = "10/minute"
+    cors_origins: list[str] = ["http://localhost:5173"]
 
     @property
     def database_url(self) -> str:
