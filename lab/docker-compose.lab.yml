@@ -1,0 +1,47 @@
+name: netsentry-lab
+
+services:
+  web1:
+    image: nginx:alpine
+    networks:
+      lab:
+        ipv4_address: 172.30.0.11
+
+  ssh1:
+    image: linuxserver/openssh-server
+    environment:
+      PASSWORD_ACCESS: "true"
+      USER_NAME: lab
+      USER_PASSWORD: lab-only-password
+    networks:
+      lab:
+        ipv4_address: 172.30.0.12
+
+  ftp1:
+    image: fauria/vsftpd
+    networks:
+      lab:
+        ipv4_address: 172.30.0.13
+
+  db1:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: lab-only-password
+    networks:
+      lab:
+        ipv4_address: 172.30.0.14
+
+  dvwa:
+    image: vulnerables/web-dvwa
+    networks:
+      lab:
+        ipv4_address: 172.30.0.15
+
+networks:
+  lab:
+    name: netsentry_lab
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
