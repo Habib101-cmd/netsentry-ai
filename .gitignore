@@ -1,10 +1,5 @@
+.git
 .env
-*.pem
-*.key
+node_modules
 *.xml
-data/raw_scans/
-reports_output/
-__pycache__/
-.venv/
-node_modules/
-.pytest_cache/
+data/raw_scans

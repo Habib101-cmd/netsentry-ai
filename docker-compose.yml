@@ -9,7 +9,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-    networks: [internal]        # aucun port publié (SEC-05)
+    networks: [internal]          # aucun port publié (SEC-05)
 
   backend:
     build: ./backend
@@ -20,6 +20,23 @@ services:
     ports: ["8000:8000"]
     networks: [internal, public]
 
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    user: "1000:1000"
+    cap_drop: [ALL]
+    cap_add: [NET_RAW, NET_ADMIN]   # uniquement ce que Nmap exige (SEC-03)
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 512m
+    cpus: 1.0
+    networks: [internal, lab]
+
 volumes:
   pgdata:
 
@@ -27,3 +44,6 @@ networks:
   internal:
     internal: true
   public:
+  lab:
+    external: true
+    name: netsentry_lab

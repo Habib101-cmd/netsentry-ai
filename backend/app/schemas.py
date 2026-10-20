@@ -50,3 +50,76 @@ class AuditLogOut(BaseModel):
     target: str | None
     source_ip: str | None
     result: str
+
+
+class ScopeCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    cidr: str = Field(max_length=43)
+    description: str = Field("", max_length=500)
+    allow_public: bool = False
+    authorization_confirmed: bool
+
+
+class ScopeOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    cidr: str
+    description: str
+    allow_public: bool
+    is_active: bool
+    created_at: datetime
+
+
+class ScanCreate(BaseModel):
+    target: str = Field(max_length=64)
+    profile: Literal["discovery", "standard", "deep"]
+
+
+class ScanOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    scope_id: int
+    target: str
+    profile: str
+    status: str
+    cancel_requested: bool
+    error: str | None
+    created_by: int
+    created_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
+    nmap_version: str | None
+
+
+class VulnerabilityOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    cve: str
+    cvss: float | None
+    source: str
+
+
+class ServiceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    port: int
+    protocol: str
+    state: str
+    name: str | None
+    product: str | None
+    version: str | None
+    confidence: int
+    vulnerabilities: list[VulnerabilityOut]
+
+
+class HostOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    scan_id: int
+    ip: str
+    mac: str | None
+    hostname: str | None
+    os_guess: str | None
+    state: str
+    criticality: str
+    services: list[ServiceOut]
