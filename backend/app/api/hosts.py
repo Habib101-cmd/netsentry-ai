@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
-
+from app.services.audit import audit, client_ip
 from app.auth.deps import require_role
 from app.database import get_db
 from app.models.auth import User
 from app.models.scan import Host, Scan, Service
-from app.schemas import HostOut
+from app.schemas import HostOut, HostUpdate
 
 router = APIRouter(prefix="/hosts", tags=["hosts"])
 
@@ -31,4 +31,17 @@ def get_host(host_id: int, db: Session = Depends(get_db),
     host = db.scalar(_host_query().where(Host.id == host_id))
     if host is None:
         raise HTTPException(404, "Host not found")
+    return host
+
+
+@router.patch("/{host_id}", response_model=HostOut)
+def update_host(host_id: int, body: HostUpdate, request: Request, db: Session = Depends(get_db),
+                user: User = Depends(require_role("admin", "analyst"))):
+    host = db.scalar(_host_query().where(Host.id == host_id))
+    if host is None:
+        raise HTTPException(404, "Host not found")
+    host.criticality = body.criticality
+    db.commit()
+    audit(db, "host_criticality", "success", user_id=user.id, username=user.username,
+          target=f"{host.id}:{body.criticality}", source_ip=client_ip(request))
     return host

@@ -10,3 +10,4 @@ defusedxml
 slowapi
 pytest
 httpx
+pyyaml

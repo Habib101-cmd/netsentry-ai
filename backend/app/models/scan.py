@@ -6,6 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 from app.timeutils import utcnow
 
+from sqlalchemy import JSON, Text  # à placer avec les imports du haut
+
 
 class Scope(Base):
     __tablename__ = "scopes"
@@ -69,3 +71,31 @@ class Vulnerability(Base):
     cve: Mapped[str] = mapped_column(String(20))
     cvss: Mapped[float | None] = mapped_column(Float, nullable=True)
     source: Mapped[str] = mapped_column(String(32))
+
+
+class Finding(Base):
+    __tablename__ = "findings"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    scan_id: Mapped[int] = mapped_column(ForeignKey("scans.id"), index=True)
+    host_id: Mapped[int] = mapped_column(ForeignKey("hosts.id"), index=True)
+    service_id: Mapped[int | None] = mapped_column(ForeignKey("services.id"), nullable=True)
+    key: Mapped[str] = mapped_column(String(200), index=True)  # règle|ip|port : suit un constat entre scans
+    rule_id: Mapped[str] = mapped_column(String(16))
+    rule_version: Mapped[int] = mapped_column(Integer)
+    title: Mapped[str] = mapped_column(String(200))
+    level: Mapped[str] = mapped_column(String(10), index=True)  # info|low|medium|high|critical
+    score: Mapped[int] = mapped_column(Integer)
+    factors: Mapped[list] = mapped_column(JSON)
+    justification: Mapped[str] = mapped_column(Text)
+    evidence: Mapped[str] = mapped_column(Text)
+    recommendation: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), default="new")  # new|in_progress|fixed|accepted
+    accepted_comment: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    accepted_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    host: Mapped["Host"] = relationship()
+
+    @property
+    def host_ip(self) -> str:
+        return self.host.ip

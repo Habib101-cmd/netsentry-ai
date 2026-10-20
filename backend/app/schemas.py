@@ -123,3 +123,35 @@ class HostOut(BaseModel):
     state: str
     criticality: str
     services: list[ServiceOut]
+
+
+class FindingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    scan_id: int
+    host_id: int
+    host_ip: str
+    service_id: int | None
+    rule_id: str
+    rule_version: int
+    title: str
+    level: str
+    score: int
+    factors: list[dict]
+    justification: str
+    evidence: str
+    recommendation: str
+    status: str
+    accepted_comment: str | None
+    accepted_by: int | None
+    first_seen: datetime
+    last_seen: datetime
+
+
+class FindingUpdate(BaseModel):
+    status: Literal["new", "in_progress", "fixed", "accepted"]
+    comment: str | None = Field(None, max_length=1000)
+
+
+class HostUpdate(BaseModel):
+    criticality: Literal["low", "normal", "high"]

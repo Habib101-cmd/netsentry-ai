@@ -1,0 +1,68 @@
+- id: R001
+  version: 1
+  title: SSH accessible
+  ports: [22]
+  names: [ssh]
+  severity: 40
+  exposure: 60
+  risk: Accès distant exposé
+  recommendation: Limiter les sources autorisées et préférer les clés SSH aux mots de passe.
+
+- id: R002
+  version: 1
+  title: Telnet actif
+  ports: [23]
+  names: [telnet]
+  severity: 85
+  exposure: 80
+  risk: Administration et échanges non chiffrés, interception possible
+  recommendation: Désactiver Telnet et migrer vers SSH.
+
+- id: R003
+  version: 1
+  title: Service d'administration à distance (RDP/VNC) accessible
+  ports: [3389, 5900, 5901]
+  names: [ms-wbt-server, vnc]
+  severity: 75
+  exposure: 80
+  risk: Accès d'administration non souhaité sur ce réseau
+  recommendation: Restreindre par pare-feu ou segmentation ; exiger un VPN.
+
+- id: R004
+  version: 1
+  title: FTP non chiffré
+  ports: [21]
+  names: [ftp]
+  severity: 60
+  exposure: 60
+  risk: Identifiants et données transmis en clair
+  recommendation: Migrer vers SFTP ou FTPS.
+
+- id: R005
+  version: 1
+  title: HTTP non chiffré
+  ports: [80, 8080]
+  names: [http, http-proxy, http-alt]
+  severity: 30
+  exposure: 50
+  risk: Interception ou modification des échanges
+  recommendation: Activer HTTPS et rediriger le trafic HTTP.
+
+- id: R006
+  version: 1
+  title: Base de données exposée
+  ports: [3306, 5432, 27017, 6379, 1433]
+  names: [mysql, postgresql, mongodb, redis, ms-sql-s]
+  severity: 70
+  exposure: 70
+  risk: Accès possible aux données depuis ce réseau
+  recommendation: Restreindre l'écoute aux hôtes autorisés (pare-feu, bind sur interface interne).
+
+- id: R007
+  version: 1
+  title: Service non identifié
+  unidentified: true
+  severity: 25
+  exposure: 40
+  risk: Informations insuffisantes pour évaluer le service
+  recommendation: Vérification complémentaire autorisée (profil approfondi, inspection manuelle).

@@ -1,1 +1,1 @@
-from app.models.scan import Host, Scan, Scope, Service, Vulnerability  # noqa: F401
+from app.models.scan import Host, Scan, Scope, Service, Vulnerability, Finding  # noqa: F401

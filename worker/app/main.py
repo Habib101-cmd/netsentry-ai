@@ -12,6 +12,8 @@ from app.services.nmap_cmd import build_cmd
 from app.services.nmap_parser import MAX_XML_BYTES, parse_nmap_xml
 from app.services.target_validation import validate_target
 from app.timeutils import utcnow
+# en haut, avec les imports
+from app.risk_engine.service import analyze_scan
 
 log = logging.getLogger("worker")
 POLL_SECONDS = 3
@@ -93,7 +95,8 @@ def process(db, scan):
             finish(db, scan, "cancelled")
             return
         data = parse_nmap_xml(xml)
-        hosts = save_results(db, scan, data)  # noqa: F841 (utilisé à l'étape 7)
+        hosts = save_results(db, scan, data)
+        analyze_scan(db, scan, hosts)          # <- ligne ajoutée (supprime le "# noqa")
         scan.status = "done"
         scan.finished_at = utcnow()
         db.commit()  # UNE transaction : tout ou rien (ENF-03)
