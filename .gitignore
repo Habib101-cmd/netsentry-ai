@@ -1,0 +1,10 @@
+.env
+*.pem
+*.key
+*.xml
+data/raw_scans/
+reports_output/
+__pycache__/
+.venv/
+node_modules/
+.pytest_cache/
