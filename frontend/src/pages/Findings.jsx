@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
-import { api, errMsg } from "../api";
+import { api, errMsg, download } from "../api";
 import { ErrorAlert, FINDING_STATUS_FR, LEVELS, LEVEL_FR, LevelBadge, fmtDate } from "../components";
 
 const FACTOR_FR = {
@@ -110,7 +110,16 @@ export default function Findings() {
           <label htmlFor="qq" className="form-label">Recherche dans le titre</label>
           <input id="qq" className="form-control" value={q} maxLength={100} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <div className="col-md-4">{/* EXPORT_BUTTONS */}</div>
+        <div className="col-md-4">          
+        <button className="btn btn-outline-secondary me-2"
+            onClick={() => download("/findings/export?format=csv", "constats.csv").catch((e) => setError(errMsg(e)))}>
+            Exporter CSV
+          </button>
+          <button className="btn btn-outline-secondary"
+            onClick={() => download("/findings/export?format=json", "constats.json").catch((e) => setError(errMsg(e)))}>
+            Exporter JSON
+          </button>
+          </div>
       </div>
       <table className="table table-hover align-middle">
         <thead>

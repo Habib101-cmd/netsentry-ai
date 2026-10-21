@@ -11,3 +11,5 @@ slowapi
 pytest
 httpx
 pyyaml
+reportlab
+pypdf

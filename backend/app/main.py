@@ -4,7 +4,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
 
-from app.api import audit_logs, auth, hosts, scans, scopes, users, findings
+from app.api import audit_logs, auth, hosts, scans, scopes, users, findings, reports
 from app.config import settings
 from app.database import engine
 from app.ratelimit import limiter
@@ -22,6 +22,7 @@ app.include_router(scopes.router)
 app.include_router(scans.router)
 app.include_router(hosts.router)
 app.include_router(findings.router)
+app.include_router(reports.router)
 
 
 @app.middleware("http")

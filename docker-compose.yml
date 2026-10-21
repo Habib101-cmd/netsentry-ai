@@ -36,6 +36,12 @@ services:
     mem_limit: 512m
     cpus: 1.0
     networks: [internal, lab]
+  frontend:
+    build:
+      context: ./frontend
+    ports: ["8080:8080"]
+    cap_drop: [ALL]
+    networks: [public]
 
 volumes:
   pgdata:

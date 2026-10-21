@@ -14,7 +14,8 @@ export default function Layout() {
           <li className="nav-item"><NavLink to="/scans" className={link}>Scans</NavLink></li>
           <li className="nav-item"><NavLink to="/hosts" className={link}>Équipements</NavLink></li>
           <li className="nav-item"><NavLink to="/findings" className={link}>Constats</NavLink></li>
-          {/* NAV_STEP9 */}
+          <li className="nav-item"><NavLink to="/history" className={link}>Historique</NavLink></li>
+          <li className="nav-item"><NavLink to="/reports" className={link}>Rapports</NavLink></li>
           {user.role === "admin" && (
             <li className="nav-item"><NavLink to="/admin" className={link}>Administration</NavLink></li>
           )}

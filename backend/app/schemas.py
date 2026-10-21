@@ -155,3 +155,16 @@ class FindingUpdate(BaseModel):
 
 class HostUpdate(BaseModel):
     criticality: Literal["low", "normal", "high"]
+
+
+class ReportCreate(BaseModel):
+    scan_id: int
+
+
+class ReportOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    scan_id: int
+    generated_by: int
+    created_at: datetime
+    size_bytes: int

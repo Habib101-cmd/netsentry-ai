@@ -9,7 +9,8 @@ import Hosts from "./pages/Hosts";
 import HostDetail from "./pages/HostDetail";
 import Findings from "./pages/Findings";
 import Admin from "./pages/Admin";
-
+import Reports from "./pages/Reports";
+import History from "./pages/History"
 function Protected({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <p className="p-5 text-center">Chargement…</p>;
@@ -36,8 +37,8 @@ export default function App() {
             <Route path="hosts" element={<Hosts />} />
             <Route path="hosts/:id" element={<HostDetail />} />
             <Route path="findings" element={<Findings />} />
-            {/* ROUTES_STEP9 */}
-            <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
+            <Route path="history" element={<History />} />
+            <Route path="reports" element={<Reports />} />            <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

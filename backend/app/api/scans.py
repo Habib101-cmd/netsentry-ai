@@ -10,9 +10,21 @@ from app.schemas import ScanCreate, ScanOut
 from app.services.audit import audit, client_ip
 from app.services.target_validation import TargetError, validate_target
 from app.timeutils import utcnow
-
+from app.services.compare import compare_scans
 router = APIRouter(prefix="/scans", tags=["scans"])
 MAX_QUEUE = 5  # SEC-09 : limite de scans en attente/en cours
+
+
+@router.get("/{scan_id}/compare/{other_id}")
+def compare(scan_id: int, other_id: int, db: Session = Depends(get_db),
+            user: User = Depends(require_role("admin", "analyst"))):
+    """scan_id = scan de référence (avant), other_id = scan comparé (après)."""
+    base, other = db.get(Scan, scan_id), db.get(Scan, other_id)
+    if base is None or other is None:
+        raise HTTPException(404, "Scan not found")
+    if base.status != "done" or other.status != "done":
+        raise HTTPException(409, "Les deux scans doivent être terminés")
+    return compare_scans(db, base, other)
 
 
 @router.post("", response_model=ScanOut, status_code=201)
