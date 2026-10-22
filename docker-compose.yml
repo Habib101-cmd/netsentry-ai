@@ -17,7 +17,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports: ["8000:8000"]
+    ports: ["127.0.0.1:8000:8000"]
     networks: [internal, public]
 
   worker:
@@ -36,10 +36,11 @@ services:
     mem_limit: 512m
     cpus: 1.0
     networks: [internal, lab]
+
   frontend:
     build:
       context: ./frontend
-    ports: ["8080:8080"]
+    ports: ["127.0.0.1:8080:8080"]
     cap_drop: [ALL]
     networks: [public]
 
