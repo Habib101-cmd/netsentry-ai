@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
+from sqlalchemy.orm import Session, selectinload
 from app.auth.deps import require_role
 from app.database import get_db
 from app.models.auth import User
@@ -11,6 +10,9 @@ from app.services.audit import audit, client_ip
 from app.services.target_validation import TargetError, validate_target
 from app.timeutils import utcnow
 from app.services.compare import compare_scans
+from app.services.netmap import build_map, build_timeline
+from typing import Literal
+
 router = APIRouter(prefix="/scans", tags=["scans"])
 MAX_QUEUE = 5  # SEC-09 : limite de scans en attente/en cours
 
@@ -57,6 +59,12 @@ def list_scans(db: Session = Depends(get_db), user: User = Depends(require_role(
     return db.scalars(select(Scan).order_by(Scan.id.desc()).limit(100)).all()
 
 
+@router.get("/timeline")
+def timeline(profile: Literal["discovery", "standard", "deep"] | None = None,
+             db: Session = Depends(get_db), user: User = Depends(require_role("admin", "analyst"))):
+    return build_timeline(db, profile)
+
+
 @router.get("/{scan_id}", response_model=ScanOut)
 def get_scan(scan_id: int, db: Session = Depends(get_db),
              user: User = Depends(require_role("admin", "analyst"))):
@@ -83,3 +91,14 @@ def cancel_scan(scan_id: int, request: Request, db: Session = Depends(get_db),
     audit(db, "scan_cancel", "success", user_id=user.id, username=user.username,
           target=str(scan.id), source_ip=client_ip(request))
     return scan
+
+
+@router.get("/{scan_id}/map")
+def network_map(scan_id: int, db: Session = Depends(get_db),
+                user: User = Depends(require_role("admin", "analyst"))):
+    scan = db.get(Scan, scan_id)
+    if scan is None:
+        raise HTTPException(404, "Scan not found")
+    if scan.status != "done":
+        raise HTTPException(409, "Le scan n'est pas terminé")
+    return build_map(db, scan)

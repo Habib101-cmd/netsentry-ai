@@ -11,6 +11,8 @@ import Findings from "./pages/Findings";
 import Admin from "./pages/Admin";
 import Reports from "./pages/Reports";
 import History from "./pages/History"
+import NetworkMap from "./pages/NetworkMap";
+import Timeline from "./pages/Timeline";
 function Protected({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <p className="p-5 text-center">Chargement…</p>;
@@ -38,7 +40,10 @@ export default function App() {
             <Route path="hosts/:id" element={<HostDetail />} />
             <Route path="findings" element={<Findings />} />
             <Route path="history" element={<History />} />
-            <Route path="reports" element={<Reports />} />            <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="map" element={<NetworkMap />} />
+            <Route path="timeline" element={<Timeline />} />
+            <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -35,3 +35,6 @@ export function ErrorAlert({ error }) {
 export function fmtDate(s) {
   return s ? new Date(s).toLocaleString("fr-FR") : "-";
 }
+export const LEVEL_COLOR = {
+  critical: "#dc3545", high: "#fd7e14", medium: "#ffc107", low: "#6c757d", info: "#adb5bd", none: "#198754",
+};
