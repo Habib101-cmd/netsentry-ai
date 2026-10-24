@@ -5,14 +5,15 @@ from app.auth.deps import require_role
 from app.database import get_db
 from app.models.auth import User
 from app.models.scan import Scan, Scope
-from app.schemas import ScanCreate, ScanOut
+from app.schemas import ScanCreate, ScanOut, AnomalyOut
 from app.services.audit import audit, client_ip
 from app.services.target_validation import TargetError, validate_target
 from app.timeutils import utcnow
 from app.services.compare import compare_scans
 from app.services.netmap import build_map, build_timeline
 from typing import Literal
-
+from app.ai_engine.service import missing_reason
+from app.models.anomaly import AnomalyResult
 router = APIRouter(prefix="/scans", tags=["scans"])
 MAX_QUEUE = 5  # SEC-09 : limite de scans en attente/en cours
 
@@ -102,3 +103,17 @@ def network_map(scan_id: int, db: Session = Depends(get_db),
     if scan.status != "done":
         raise HTTPException(409, "Le scan n'est pas terminé")
     return build_map(db, scan)
+
+
+@router.get("/{scan_id}/anomalies")
+def scan_anomalies(scan_id: int, db: Session = Depends(get_db),
+                   user: User = Depends(require_role("admin", "analyst"))):
+    scan = db.get(Scan, scan_id)
+    if scan is None:
+        raise HTTPException(404, "Scan not found")
+    rows = db.scalars(select(AnomalyResult).where(AnomalyResult.scan_id == scan_id)
+                      .options(selectinload(AnomalyResult.host))
+                      .order_by(AnomalyResult.score.desc())).all()
+    return {"scan_id": scan_id, "model_version": rows[0].model_version if rows else None,
+            "message": None if rows else missing_reason(db, scan),
+            "results": [AnomalyOut.model_validate(r) for r in rows]}

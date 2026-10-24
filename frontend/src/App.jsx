@@ -13,6 +13,8 @@ import Reports from "./pages/Reports";
 import History from "./pages/History"
 import NetworkMap from "./pages/NetworkMap";
 import Timeline from "./pages/Timeline";
+import Anomalies from "./pages/Anomalies";
+
 function Protected({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <p className="p-5 text-center">Chargement…</p>;
@@ -43,6 +45,7 @@ export default function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="map" element={<NetworkMap />} />
             <Route path="timeline" element={<Timeline />} />
+            <Route path="anomalies" element={<Anomalies />} />
             <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

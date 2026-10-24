@@ -13,3 +13,5 @@ httpx
 pyyaml
 reportlab
 pypdf
+scikit-learn
+numpy

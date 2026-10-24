@@ -13,7 +13,8 @@ from sqlalchemy.orm import selectinload
 from app.models.scan import Finding, Host, Scan
 from app.services.compare import compare_scans
 from app.timeutils import utcnow
-
+from app.ai_engine.service import missing_reason
+from app.models.anomaly import AnomalyResult
 LEVEL_ORDER = ["critical", "high", "medium", "low", "info"]
 LEVEL_FR = {"critical": "Critique", "high": "Élevé", "medium": "Moyen", "low": "Faible", "info": "Info"}
 STATUS_FR = {"new": "Nouveau", "in_progress": "En cours d'analyse", "fixed": "Corrigé", "accepted": "Accepté"}
@@ -198,9 +199,22 @@ def build_report_pdf(db, scan: Scan, author: str) -> bytes:
 
     # 9. Anomalies
     s.append(p("9. Anomalies détectées", H2))
-    s.append(p("Le module de détection d'anomalies (Machine Learning) n'est pas encore activé dans cette "
-               "version : aucune anomalie n'est rapportée dans ce document."))
-
+    anomalies = list(db.scalars(select(AnomalyResult).where(AnomalyResult.scan_id == scan.id)
+                                .options(selectinload(AnomalyResult.host))
+                                .order_by(AnomalyResult.score.desc())))
+    if not anomalies:
+        s.append(p(missing_reason(db, scan)))
+    else:
+        flagged = [a for a in anomalies if a.is_anomaly]
+        s.append(p(f"{len(anomalies)} équipement(s) analysé(s) par le modèle {anomalies[0].model_version} ; "
+                   f"{len(flagged)} comportement(s) atypique(s) à vérifier."))
+        if flagged:
+            s.append(_table(["Équipement", "Score", "Justification"],
+                            [[a.host.ip, a.score, a.explanation.get("summary")] for a in flagged],
+                            [3.0, 1.6, 12.8]))
+        s.append(p("Un comportement atypique est un écart statistique par rapport à ce que le modèle a appris : "
+                   "ce n'est ni une vulnérabilité, ni une attaque confirmée. Le modèle est entraîné sur des données "
+                   "synthétiques et n'a qu'une valeur indicative.", NOTE))
     # 10. Comparaison
     s.append(p("10. Comparaison avec une analyse antérieure", H2))
     prev = _previous_scan(db, scan)

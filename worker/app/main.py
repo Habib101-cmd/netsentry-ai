@@ -14,6 +14,7 @@ from app.services.target_validation import validate_target
 from app.timeutils import utcnow
 # en haut, avec les imports
 from app.risk_engine.service import analyze_scan
+from app.ai_engine.service import analyze_anomalies
 
 log = logging.getLogger("worker")
 POLL_SECONDS = 3
@@ -96,7 +97,12 @@ def process(db, scan):
             return
         data = parse_nmap_xml(xml)
         hosts = save_results(db, scan, data)
-        analyze_scan(db, scan, hosts)          # <- ligne ajoutée (supprime le "# noqa")
+        analyze_scan(db, scan, hosts)
+        try:  # l'analyse d'anomalies ne doit jamais faire échouer un scan
+            with db.begin_nested():
+                analyze_anomalies(db, scan)
+        except Exception:
+            log.exception("Analyse d'anomalies ignorée pour le scan %s", scan.id)         # <- ligne ajoutée (supprime le "# noqa")
         scan.status = "done"
         scan.finished_at = utcnow()
         db.commit()  # UNE transaction : tout ou rien (ENF-03)

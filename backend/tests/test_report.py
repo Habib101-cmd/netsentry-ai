@@ -42,3 +42,16 @@ def test_csv_export_neutralizes_formulas():
     assert _csv_safe("=cmd|' /C calc'!A0").startswith("'")
     assert _csv_safe("@SUM(1)").startswith("'")
     assert _csv_safe("normal") == "normal"
+
+
+def test_report_lists_anomalies(db_session):
+    from app.models.anomaly import AnomalyResult
+
+    scan = mk_scan(db_session)
+    host = mk_host(db_session, scan, "172.30.0.11")
+    db_session.add(AnomalyResult(scan_id=scan.id, host_id=host.id, score=80.0, is_anomaly=True, features={},
+                                 explanation={"summary": "Comportement atypique à vérifier. Test."},
+                                 model_version="iforest-test"))
+    db_session.commit()
+    text = _text(build_report_pdf(db_session, scan, "tester"))
+    assert "atypique" in text and "attaque confirmée" in text

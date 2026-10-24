@@ -168,3 +168,16 @@ class ReportOut(BaseModel):
     generated_by: int
     created_at: datetime
     size_bytes: int
+
+
+class AnomalyOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    scan_id: int
+    host_id: int
+    host_ip: str
+    score: float
+    is_anomaly: bool
+    features: dict
+    explanation: dict
+    model_version: str
