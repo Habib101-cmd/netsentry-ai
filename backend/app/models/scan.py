@@ -1,12 +1,19 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import (  # à placer avec les imports du haut
+    JSON,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 from app.timeutils import utcnow
-
-from sqlalchemy import JSON, Text  # à placer avec les imports du haut
 
 
 class Scope(Base):

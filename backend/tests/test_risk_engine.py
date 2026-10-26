@@ -5,8 +5,16 @@ RULES = load_rules()
 
 
 def svc(port, name, state="open", conf=100, cves=None):
-    return {"port": port, "protocol": "tcp", "state": state, "name": name, "product": None,
-            "version": None, "confidence": conf, "cves": cves or []}
+    return {
+        "port": port,
+        "protocol": "tcp",
+        "state": state,
+        "name": name,
+        "product": None,
+        "version": None,
+        "confidence": conf,
+        "cves": cves or [],
+    }
 
 
 def ids(drafts):
@@ -67,4 +75,14 @@ def test_criticality_raises_score():
 
 def test_level_bounds():
     assert [level_for(s) for s in (0, 19, 20, 39, 40, 59, 60, 79, 80, 100)] == [
-        "info", "info", "low", "low", "medium", "medium", "high", "high", "critical", "critical"]
+        "info",
+        "info",
+        "low",
+        "low",
+        "medium",
+        "medium",
+        "high",
+        "high",
+        "critical",
+        "critical",
+    ]

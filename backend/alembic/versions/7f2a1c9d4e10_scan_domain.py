@@ -3,11 +3,11 @@
 Revision ID: 7f2a1c9d4e10
 Revises: ca9e86eb2f26
 """
+
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-
 
 revision: str = "7f2a1c9d4e10"
 down_revision: Union[str, Sequence[str], None] = "ca9e86eb2f26"

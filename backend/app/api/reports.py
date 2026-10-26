@@ -16,8 +16,9 @@ ROLES = ("admin", "analyst")
 
 
 @router.post("", response_model=ReportOut, status_code=201)
-def create_report(body: ReportCreate, request: Request, db: Session = Depends(get_db),
-                  user: User = Depends(require_role(*ROLES))):
+def create_report(
+    body: ReportCreate, request: Request, db: Session = Depends(get_db), user: User = Depends(require_role(*ROLES))
+):
     scan = db.get(Scan, body.scan_id)
     if scan is None:
         raise HTTPException(404, "Scan not found")
@@ -27,8 +28,15 @@ def create_report(body: ReportCreate, request: Request, db: Session = Depends(ge
     report = Report(scan_id=scan.id, generated_by=user.id, content=pdf, size_bytes=len(pdf))
     db.add(report)
     db.commit()
-    audit(db, "report_generate", "success", user_id=user.id, username=user.username,
-          target=f"{report.id}:scan{scan.id}", source_ip=client_ip(request))
+    audit(
+        db,
+        "report_generate",
+        "success",
+        user_id=user.id,
+        username=user.username,
+        target=f"{report.id}:scan{scan.id}",
+        source_ip=client_ip(request),
+    )
     return report
 
 
@@ -39,13 +47,24 @@ def list_reports(db: Session = Depends(get_db), user: User = Depends(require_rol
 
 
 @router.get("/{report_id}/download")
-def download_report(report_id: int, request: Request, db: Session = Depends(get_db),
-                    user: User = Depends(require_role(*ROLES))):
+def download_report(
+    report_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(require_role(*ROLES))
+):
     report = db.get(Report, report_id)
     if report is None:
         raise HTTPException(404, "Report not found")
-    audit(db, "report_download", "success", user_id=user.id, username=user.username,
-          target=str(report.id), source_ip=client_ip(request))
+    audit(
+        db,
+        "report_download",
+        "success",
+        user_id=user.id,
+        username=user.username,
+        target=str(report.id),
+        source_ip=client_ip(request),
+    )
     name = f"netsentry-scan-{report.scan_id}-rapport-{report.id}.pdf"
-    return Response(content=report.content, media_type="application/pdf",
-                    headers={"Content-Disposition": f'attachment; filename="{name}"', "Cache-Control": "no-store"})
+    return Response(
+        content=report.content,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{name}"', "Cache-Control": "no-store"},
+    )

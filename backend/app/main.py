@@ -4,10 +4,11 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
 
-from app.api import audit_logs, auth, hosts, scans, scopes, users, findings, reports
+from app.api import audit_logs, auth, findings, hosts, reports, scans, scopes, users
 from app.config import settings
 from app.database import engine
 from app.ratelimit import limiter
+
 app = FastAPI(title="NetSentry AI", version="0.2.0")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

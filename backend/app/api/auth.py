@@ -10,8 +10,15 @@ from app.database import get_db
 from app.models.auth import RefreshToken, User
 from app.ratelimit import limiter
 from app.schemas import ChangePasswordIn, LoginIn, RefreshIn, TokenOut, UserOut
-from app.security import (DUMMY_HASH, create_access_token, hash_password, hash_token,
-                          new_refresh_token, validate_password, verify_password)
+from app.security import (
+    DUMMY_HASH,
+    create_access_token,
+    hash_password,
+    hash_token,
+    new_refresh_token,
+    validate_password,
+    verify_password,
+)
 from app.services.audit import audit, client_ip
 from app.timeutils import as_utc, utcnow
 
@@ -22,11 +29,17 @@ LOCK_MINUTES = 15
 
 def _issue_tokens(db: Session, user: User) -> TokenOut:
     raw = new_refresh_token()
-    db.add(RefreshToken(user_id=user.id, token_hash=hash_token(raw),
-                        expires_at=utcnow() + timedelta(days=settings.refresh_token_days)))
+    db.add(
+        RefreshToken(
+            user_id=user.id,
+            token_hash=hash_token(raw),
+            expires_at=utcnow() + timedelta(days=settings.refresh_token_days),
+        )
+    )
     db.commit()
-    return TokenOut(access_token=create_access_token(user), refresh_token=raw,
-                    must_change_password=user.must_change_password)
+    return TokenOut(
+        access_token=create_access_token(user), refresh_token=raw, must_change_password=user.must_change_password
+    )
 
 
 @router.post("/login", response_model=TokenOut)
@@ -71,16 +84,17 @@ def refresh(request: Request, body: RefreshIn, db: Session = Depends(get_db)):
         raise HTTPException(401, "Invalid refresh token")
     token.revoked = True  # rotation : un refresh token ne sert qu'une fois
     db.commit()
-    audit(db, "token_refresh", "success", user_id=user.id, username=user.username,
-          source_ip=client_ip(request))
+    audit(db, "token_refresh", "success", user_id=user.id, username=user.username, source_ip=client_ip(request))
     return _issue_tokens(db, user)
 
 
 @router.post("/logout")
-def logout(request: Request, body: RefreshIn, user: User = Depends(get_current_user),
-           db: Session = Depends(get_db)):
-    token = db.scalar(select(RefreshToken).where(RefreshToken.token_hash == hash_token(body.refresh_token),
-                                                 RefreshToken.user_id == user.id))
+def logout(request: Request, body: RefreshIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    token = db.scalar(
+        select(RefreshToken).where(
+            RefreshToken.token_hash == hash_token(body.refresh_token), RefreshToken.user_id == user.id
+        )
+    )
     if token:
         token.revoked = True
         db.commit()
@@ -89,8 +103,9 @@ def logout(request: Request, body: RefreshIn, user: User = Depends(get_current_u
 
 
 @router.post("/change-password")
-def change_password(request: Request, body: ChangePasswordIn, user: User = Depends(get_current_user),
-                    db: Session = Depends(get_db)):
+def change_password(
+    request: Request, body: ChangePasswordIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
     ip = client_ip(request)
     if not verify_password(body.current_password, user.password_hash):
         audit(db, "change_password", "failure", user_id=user.id, username=user.username, source_ip=ip)

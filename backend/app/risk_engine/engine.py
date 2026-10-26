@@ -39,31 +39,54 @@ def _evidence(svc: dict) -> str:
     return " ".join(parts)
 
 
-def _draft(*, rule_id, version, title, severity, exposure, risk, recommendation,
-           criticality, svc, cvss=None, extra=""):
+def _draft(*, rule_id, version, title, severity, exposure, risk, recommendation, criticality, svc, cvss=None, extra=""):
     score, level, factors = compute_score(severity, criticality, exposure, svc["confidence"], cvss)
-    return {"rule_id": rule_id, "rule_version": version, "title": title, "score": score,
-            "level": level, "factors": factors, "justification": risk,
-            "evidence": _evidence(svc) + extra, "recommendation": recommendation}
+    return {
+        "rule_id": rule_id,
+        "rule_version": version,
+        "title": title,
+        "score": score,
+        "level": level,
+        "factors": factors,
+        "justification": risk,
+        "evidence": _evidence(svc) + extra,
+        "recommendation": recommendation,
+    }
 
 
 def evaluate(rules: list[dict], host_criticality: str, svc: dict) -> list[dict]:
     drafts = []
     for rule in rules:
         if rule_matches(rule, svc):
-            drafts.append(_draft(
-                rule_id=rule["id"], version=rule["version"], title=rule["title"],
-                severity=rule["severity"], exposure=rule.get("exposure", 50),
-                risk=rule["risk"], recommendation=rule["recommendation"],
-                criticality=host_criticality, svc=svc))
+            drafts.append(
+                _draft(
+                    rule_id=rule["id"],
+                    version=rule["version"],
+                    title=rule["title"],
+                    severity=rule["severity"],
+                    exposure=rule.get("exposure", 50),
+                    risk=rule["risk"],
+                    recommendation=rule["recommendation"],
+                    criticality=host_criticality,
+                    svc=svc,
+                )
+            )
     if svc.get("cves"):
         top = sorted(svc["cves"], key=lambda c: -(c["cvss"] or 0))
         listing = ", ".join(f"{c['cve']} ({c['cvss']})" for c in top[:5])
-        drafts.append(_draft(
-            rule_id="R100", version=1, title="Version associée à des CVE connues (potentiel)",
-            severity=50, exposure=50,
-            risk="Vulnérabilité potentielle : correspondance par version, faux positifs possibles",
-            recommendation="Vérifier le produit, la version et les avis de sécurité ; mettre à jour si nécessaire.",
-            criticality=host_criticality, svc=svc, cvss=top[0]["cvss"],
-            extra=f" | CVE potentielles : {listing}"))
+        drafts.append(
+            _draft(
+                rule_id="R100",
+                version=1,
+                title="Version associée à des CVE connues (potentiel)",
+                severity=50,
+                exposure=50,
+                risk="Vulnérabilité potentielle : correspondance par version, faux positifs possibles",
+                recommendation="Vérifier le produit, la version et les avis de sécurité ; mettre à jour si nécessaire.",
+                criticality=host_criticality,
+                svc=svc,
+                cvss=top[0]["cvss"],
+                extra=f" | CVE potentielles : {listing}",
+            )
+        )
     return drafts

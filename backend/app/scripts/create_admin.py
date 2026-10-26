@@ -20,8 +20,7 @@ def main():
         if db.scalar(select(User).where(User.username == username)):
             print("Cet utilisateur existe déjà.")
             sys.exit(1)
-        db.add(User(username=username, password_hash=hash_password(password),
-                    role="admin", must_change_password=True))
+        db.add(User(username=username, password_hash=hash_password(password), role="admin", must_change_password=True))
         db.commit()
     print("Admin créé. Changement de mot de passe obligatoire à la première connexion.")
 

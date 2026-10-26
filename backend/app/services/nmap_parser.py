@@ -40,21 +40,26 @@ def parse_nmap_xml(xml_text: str) -> dict:
             if sv is not None and sv.get("tunnel") == "ssl" and name == "http":
                 name = "https"
             conf = int(sv.get("conf", "0")) * 10 if sv is not None else 0
-            services.append({
-                "port": int(p.get("portid")),
-                "protocol": p.get("protocol"),
-                "state": st.get("state") if st is not None else "unknown",
-                "name": name,
-                "product": sv.get("product") if sv is not None else None,
-                "version": sv.get("version") if sv is not None else None,
-                "confidence": conf,
-                "vulnerabilities": _vulners(p),
-            })
-        hosts.append({
-            "ip": ip, "mac": mac,
-            "hostname": hn.get("name") if hn is not None else None,
-            "os_guess": om.get("name") if om is not None else None,
-            "state": status.get("state") if status is not None else "unknown",
-            "services": services,
-        })
+            services.append(
+                {
+                    "port": int(p.get("portid")),
+                    "protocol": p.get("protocol"),
+                    "state": st.get("state") if st is not None else "unknown",
+                    "name": name,
+                    "product": sv.get("product") if sv is not None else None,
+                    "version": sv.get("version") if sv is not None else None,
+                    "confidence": conf,
+                    "vulnerabilities": _vulners(p),
+                }
+            )
+        hosts.append(
+            {
+                "ip": ip,
+                "mac": mac,
+                "hostname": hn.get("name") if hn is not None else None,
+                "os_guess": om.get("name") if om is not None else None,
+                "state": status.get("state") if status is not None else "unknown",
+                "services": services,
+            }
+        )
     return {"nmap_version": root.get("version"), "hosts": hosts}

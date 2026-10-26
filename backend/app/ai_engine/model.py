@@ -1,4 +1,5 @@
 """Isolation Forest entraîné sur des données synthétiques (aucun fichier pickle : réentraînement déterministe)."""
+
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -59,31 +60,51 @@ class TrainedModel:
             pos = np.clip(z, 0, None)
             share = pos / pos.sum() if pos.sum() > 0 else pos
             details = sorted(
-                ({"feature": f, "label": LABELS[f], "value": float(X[i][j]),
-                  "baseline_mean": round(float(self.mean[j]), 3), "z": round(float(z[j]), 2),
-                  "contribution": round(float(share[j]), 3)} for j, f in enumerate(FEATURES)),
-                key=lambda d: -d["contribution"])
+                (
+                    {
+                        "feature": f,
+                        "label": LABELS[f],
+                        "value": float(X[i][j]),
+                        "baseline_mean": round(float(self.mean[j]), 3),
+                        "z": round(float(z[j]), 2),
+                        "contribution": round(float(share[j]), 3),
+                    }
+                    for j, f in enumerate(FEATURES)
+                ),
+                key=lambda d: -d["contribution"],
+            )
             flagged = bool(raw[i] > self.threshold)
             if flagged:
-                parts = [f"{d['label']} : {_fmt(d['feature'], d['value'])} "
-                         f"(habituellement ≈ {_fmt(d['feature'], d['baseline_mean'])})"
-                         for d in details if d["contribution"] >= 0.2][:3]
+                parts = [
+                    f"{d['label']} : {_fmt(d['feature'], d['value'])} "
+                    f"(habituellement ≈ {_fmt(d['feature'], d['baseline_mean'])})"
+                    for d in details
+                    if d["contribution"] >= 0.2
+                ][:3]
                 summary = "Comportement atypique à vérifier. " + " ; ".join(parts) + "."
             else:
                 summary = "Dans la plage de comportement observée lors de l'apprentissage."
-            results[ip] = {"score": round(float(raw[i]) * 100, 1), "is_anomaly": flagged,
-                           "features": feats[ip],
-                           "explanation": {"summary": summary, "details": details,
-                                           "threshold": round(self.threshold * 100, 1)}}
+            results[ip] = {
+                "score": round(float(raw[i]) * 100, 1),
+                "is_anomaly": flagged,
+                "features": feats[ip],
+                "explanation": {"summary": summary, "details": details, "threshold": round(self.threshold * 100, 1)},
+            }
         return results
 
 
-def fit(X: np.ndarray, seed: int = SEED, n_estimators: int = N_ESTIMATORS,
-        target_fpr: float = TARGET_FPR) -> TrainedModel:
+def fit(
+    X: np.ndarray, seed: int = SEED, n_estimators: int = N_ESTIMATORS, target_fpr: float = TARGET_FPR
+) -> TrainedModel:
     forest = IsolationForest(n_estimators=n_estimators, random_state=seed).fit(X)
     threshold = float(np.quantile(-forest.score_samples(X), 1 - target_fpr))
-    return TrainedModel(forest, threshold, X.mean(axis=0), np.maximum(X.std(axis=0), STD_FLOOR),
-                        f"iforest-1-skl{sklearn.__version__}-seed{seed}")
+    return TrainedModel(
+        forest,
+        threshold,
+        X.mean(axis=0),
+        np.maximum(X.std(axis=0), STD_FLOOR),
+        f"iforest-1-skl{sklearn.__version__}-seed{seed}",
+    )
 
 
 @lru_cache(maxsize=1)

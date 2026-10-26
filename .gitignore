@@ -1,5 +1,9 @@
 .git
 .env
+.coverage
+.ruff_cache/
+.mypy_cache/
+htmlcov/
 node_modules
 *.xml
 data/raw_scans

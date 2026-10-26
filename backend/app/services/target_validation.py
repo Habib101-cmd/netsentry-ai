@@ -1,8 +1,9 @@
 import ipaddress
 
 MAX_PREFIX = 22  # taille max d'une cible (/22 = 1024 adresses)
-FORBIDDEN = [ipaddress.ip_network(n) for n in
-             ("0.0.0.0/8", "127.0.0.0/8", "169.254.0.0/16", "224.0.0.0/4", "240.0.0.0/4")]
+FORBIDDEN = [
+    ipaddress.ip_network(n) for n in ("0.0.0.0/8", "127.0.0.0/8", "169.254.0.0/16", "224.0.0.0/4", "240.0.0.0/4")
+]
 
 
 class TargetError(ValueError):

@@ -10,5 +10,4 @@ def build_cmd(profile: str, target: str, host_timeout_s: int = 300) -> list[str]
     """Retourne une LISTE d'arguments : jamais de chaîne, jamais de shell."""
     if profile not in PROFILES:
         raise ValueError("Profil de scan inconnu")
-    return ["nmap", "-n", *PROFILES[profile], "--host-timeout", f"{host_timeout_s}s",
-            "-oX", "-", target]
+    return ["nmap", "-n", *PROFILES[profile], "--host-timeout", f"{host_timeout_s}s", "-oX", "-", target]

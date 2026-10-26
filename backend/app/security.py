@@ -1,6 +1,8 @@
 import hashlib
+import re
 import secrets
 from datetime import timedelta
+from pathlib import Path
 
 import jwt
 from argon2 import PasswordHasher
@@ -12,12 +14,45 @@ from app.timeutils import utcnow
 ph = PasswordHasher()  # Argon2id par défaut
 DUMMY_HASH = ph.hash("dummy-password-for-timing")  # évite de révéler si un compte existe
 
-# À remplacer plus tard par une vraie liste (ex. top 1000 de SecLists)
-COMMON_PASSWORDS = {
-    "password", "password123", "123456789012", "qwertyuiop12", "azertyuiop12",
-    "administrator", "admin1234567", "motdepasse123", "letmein12345", "welcome12345",
-    "changeme1234", "iloveyou1234", "123456123456", "passw0rd1234", "abcdefghijkl",
+_COMMON_FILE = Path(__file__).parent / "data" / "common_passwords.txt"  # SecLists : 10k-most-common (licence MIT)
+_BUILTIN = {
+    "password",
+    "azerty",
+    "azertyuiop",
+    "qwerty",
+    "qwertyuiop",
+    "motdepasse",
+    "administrator",
+    "admin",
+    "welcome",
+    "bonjour",
+    "letmein",
+    "iloveyou",
+    "changeme",
+    "abcdefghijkl",
+    "netsentry",
 }
+_LEET = str.maketrans({"@": "a", "4": "a", "0": "o", "3": "e", "$": "s", "5": "s", "7": "t"})
+
+
+def _load_common() -> frozenset[str]:
+    words = set(_BUILTIN)
+    if _COMMON_FILE.exists():
+        text = _COMMON_FILE.read_text(encoding="utf-8", errors="ignore")
+        words |= {w.strip().lower() for w in text.splitlines() if w.strip()}
+    return frozenset(words)
+
+
+COMMON_PASSWORDS = _load_common()
+
+
+def _cores(password: str) -> set[str]:
+    """Mots de base : sans chiffres/symboles de début et de fin, avec et sans substitutions (@ -> a, 0 -> o...)."""
+    low = password.lower()
+    letters_only = re.sub(r"[^a-z]", "", low)
+    trimmed = re.sub(r"^[^a-z@$]+", "", re.sub(r"[^a-z]+$", "", low))
+    leet = re.sub(r"[^a-z]", "", trimmed.translate(_LEET))
+    return {letters_only, leet} - {""}
 
 
 def hash_password(password: str) -> str:
@@ -34,8 +69,12 @@ def verify_password(password: str, hashed: str) -> bool:
 def validate_password(password: str, username: str | None = None) -> None:
     if len(password) < 12:
         raise ValueError("Mot de passe trop court (12 caractères minimum)")
-    if password.lower() in COMMON_PASSWORDS:
-        raise ValueError("Mot de passe trop courant")
+    if not re.search(r"[a-z]", password.lower()):
+        raise ValueError("Le mot de passe doit contenir des lettres")
+    if password.lower() in COMMON_PASSWORDS or _cores(password) & COMMON_PASSWORDS:
+        raise ValueError("Mot de passe trop courant (ou variante d'un mot de passe courant)")
+    if len(set(password)) < 5:
+        raise ValueError("Mot de passe trop répétitif")
     if username and username.lower() in password.lower():
         raise ValueError("Le mot de passe ne doit pas contenir l'identifiant")
 

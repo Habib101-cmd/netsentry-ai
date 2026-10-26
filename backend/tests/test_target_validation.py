@@ -5,18 +5,31 @@ from app.services.target_validation import TargetError, validate_scope_cidr, val
 SCOPES = [(1, "172.30.0.0/24", False), (2, "10.10.0.0/16", False)]
 
 
-@pytest.mark.parametrize("target", ["172.30.0.15", "172.30.0.0/24", "172.30.0.0/25",
-                                    "10.10.4.0/22", " 172.30.0.11 "])
+@pytest.mark.parametrize("target", ["172.30.0.15", "172.30.0.0/24", "172.30.0.0/25", "10.10.4.0/22", " 172.30.0.11 "])
 def test_valid_targets(target):
     net, scope_id = validate_target(target, SCOPES)
     assert scope_id in (1, 2)
 
 
-@pytest.mark.parametrize("target", [
-    "8.8.8.8", "192.168.1.0/24", "127.0.0.1", "169.254.1.1", "224.0.0.1",
-    "10.10.0.0/16", "172.30.0.0/23", "172.30.0.1; rm -rf /", "example.com",
-    "", "2001:db8::1", "$(whoami)", "172.30.0.1 -oN /tmp/x", "172.30.0.1\n10.0.0.1",
-])
+@pytest.mark.parametrize(
+    "target",
+    [
+        "8.8.8.8",
+        "192.168.1.0/24",
+        "127.0.0.1",
+        "169.254.1.1",
+        "224.0.0.1",
+        "10.10.0.0/16",
+        "172.30.0.0/23",
+        "172.30.0.1; rm -rf /",
+        "example.com",
+        "",
+        "2001:db8::1",
+        "$(whoami)",
+        "172.30.0.1 -oN /tmp/x",
+        "172.30.0.1\n10.0.0.1",
+    ],
+)
 def test_invalid_targets(target):
     with pytest.raises(TargetError):
         validate_target(target, SCOPES)

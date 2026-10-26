@@ -1,4 +1,5 @@
 """Simulateur de scans réseau : variations bénignes + injection d'anomalies étiquetées."""
+
 import random
 from dataclasses import dataclass
 
@@ -12,15 +13,20 @@ ROLES = [
     {(21, "tcp"): "ftp", (22, "tcp"): "ssh"},
     {(25, "tcp"): "smtp", (110, "tcp"): "pop3", (143, "tcp"): "imap", (22, "tcp"): "ssh"},
 ]
-HOST_DOWN_PROB = 0.02    # variation bénigne : hôte injoignable pendant un scan
-PORT_FLAP_PROB = 0.01    # variation bénigne : port non vu pendant un scan
-DRIFT_PROB = 0.02        # évolution bénigne : un service est ajouté ou retiré durablement (par hôte et par scan)
+HOST_DOWN_PROB = 0.02  # variation bénigne : hôte injoignable pendant un scan
+PORT_FLAP_PROB = 0.01  # variation bénigne : port non vu pendant un scan
+DRIFT_PROB = 0.02  # évolution bénigne : un service est ajouté ou retiré durablement (par hôte et par scan)
 BENIGN_NEW_NAMES = ["http-alt", "domain", "ntp", "snmp"]
 NEW_PORT_NUMBERS = [2222, 3000, 8000, 8080, 8443, 8888, 9000]
-UNUSUAL_SERVICES = [(23, "telnet"), (3389, "ms-wbt-server"), (5900, "vnc"),
-                    (6379, "redis"), (27017, "mongodb"), (445, "microsoft-ds")]
-NEW_HOST_POOL = [(22, "ssh"), (80, "http"), (443, "https"), (8080, "http-proxy"),
-                 (3306, "mysql"), (21, "ftp")]
+UNUSUAL_SERVICES = [
+    (23, "telnet"),
+    (3389, "ms-wbt-server"),
+    (5900, "vnc"),
+    (6379, "redis"),
+    (27017, "mongodb"),
+    (445, "microsoft-ds"),
+]
+NEW_HOST_POOL = [(22, "ssh"), (80, "http"), (443, "https"), (8080, "http-proxy"), (3306, "mysql"), (21, "ftp")]
 ANOMALY_TYPES = ["new_host", "new_port", "unusual_service", "port_spike"]
 
 
@@ -30,8 +36,15 @@ class Simulation:
     labels: list[dict[str, str]]  # labels[t][ip] = type d'anomalie injectée à l'instant t
 
 
-def simulate(seed: int, n_hosts: int = 15, weeks: int = 8, scans_per_week: int = 7,
-             inject: bool = False, warmup: int = 21, inject_prob: float = 0.5) -> Simulation:
+def simulate(
+    seed: int,
+    n_hosts: int = 15,
+    weeks: int = 8,
+    scans_per_week: int = 7,
+    inject: bool = False,
+    warmup: int = 21,
+    inject_prob: float = 0.5,
+) -> Simulation:
     rng = random.Random(seed)
     base = {f"10.20.0.{10 + i}": dict(rng.choice(ROLES)) for i in range(n_hosts)}
     new_hosts = 0

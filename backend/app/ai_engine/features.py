@@ -1,11 +1,10 @@
 """Caractéristiques du détecteur d'anomalies : fonctions pures, sans base de données."""
 
-FEATURES = ["open_ports", "identified_services", "new_services",
-            "hosts_delta", "change_freq", "unusual_ratio"]
+FEATURES = ["open_ports", "identified_services", "new_services", "hosts_delta", "change_freq", "unusual_ratio"]
 UNKNOWN_NAMES = {"", "unknown", "tcpwrapped"}
-REF_WINDOW = 3    # nb de scans précédents formant le profil de référence d'un hôte
-FREQ_WINDOW = 5   # nb de transitions utilisées pour la fréquence de changement
-MIN_HISTORY = 2   # nb minimal de scans précédents comparables pour analyser
+REF_WINDOW = 3  # nb de scans précédents formant le profil de référence d'un hôte
+FREQ_WINDOW = 5  # nb de transitions utilisées pour la fréquence de changement
+MIN_HISTORY = 2  # nb minimal de scans précédents comparables pour analyser
 
 # Un instantané = {ip: {(port, protocole): nom_du_service}} (hôtes actifs, ports ouverts)
 Snapshot = dict[str, dict[tuple[int, str], str]]
@@ -30,7 +29,7 @@ def extract_features(history: list[Snapshot], current: Snapshot) -> dict[str, di
             if ip in snap:
                 ref_ports |= set(snap[ip])
                 ref_names |= {_name(n) for n in snap[ip].values()}
-        seq = [set(snap[ip]) for snap in history[-(FREQ_WINDOW + 1):] if ip in snap]
+        seq = [set(snap[ip]) for snap in history[-(FREQ_WINDOW + 1) :] if ip in snap]
         changes = sum(1 for a, b in zip(seq, seq[1:]) if a != b)
         change_freq = changes / (len(seq) - 1) if len(seq) > 1 else 0.0
         names = [_name(n) for n in ports.values()]

@@ -1,5 +1,4 @@
-WEIGHTS = {"rule_severity": 0.40, "host_criticality": 0.20, "exposure": 0.15,
-           "cvss": 0.15, "confidence": 0.10}
+WEIGHTS = {"rule_severity": 0.40, "host_criticality": 0.20, "exposure": 0.15, "cvss": 0.15, "confidence": 0.10}
 CRITICALITY = {"low": 20, "normal": 50, "high": 90}
 
 
@@ -15,13 +14,14 @@ def level_for(score: int) -> str:
     return "critical"
 
 
-def compute_score(rule_severity: int, criticality: str, exposure: int, confidence: int,
-                  cvss: float | None = None):
+def compute_score(rule_severity: int, criticality: str, exposure: int, confidence: int, cvss: float | None = None):
     """Retourne (score 0-100, niveau, détail des facteurs affichable à l'utilisateur)."""
-    values = {"rule_severity": rule_severity,
-              "host_criticality": CRITICALITY.get(criticality, 50),
-              "exposure": exposure,
-              "confidence": confidence}
+    values = {
+        "rule_severity": rule_severity,
+        "host_criticality": CRITICALITY.get(criticality, 50),
+        "exposure": exposure,
+        "confidence": confidence,
+    }
     weights = dict(WEIGHTS)
     if cvss is None:
         weights.pop("cvss")  # facteur absent : on renormalise les autres poids
@@ -33,7 +33,8 @@ def compute_score(rule_severity: int, criticality: str, exposure: int, confidenc
         nw = w / total
         contribution = values[name] * nw
         score += contribution
-        factors.append({"factor": name, "value": values[name],
-                        "weight": round(nw, 3), "contribution": round(contribution, 1)})
+        factors.append(
+            {"factor": name, "value": values[name], "weight": round(nw, 3), "contribution": round(contribution, 1)}
+        )
     score = max(0, min(100, round(score)))
     return score, level_for(score), factors

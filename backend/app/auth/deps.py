@@ -10,8 +10,9 @@ from app.security import decode_access_token
 bearer = HTTPBearer(auto_error=False)
 
 
-def get_current_user(creds: HTTPAuthorizationCredentials | None = Depends(bearer),
-                     db: Session = Depends(get_db)) -> User:
+def get_current_user(
+    creds: HTTPAuthorizationCredentials | None = Depends(bearer), db: Session = Depends(get_db)
+) -> User:
     if creds is None:
         raise HTTPException(401, "Not authenticated", headers={"WWW-Authenticate": "Bearer"})
     try:
@@ -35,4 +36,5 @@ def require_role(*roles: str):
         if user.role not in roles:
             raise HTTPException(403, "Insufficient permissions")
         return user
+
     return checker
