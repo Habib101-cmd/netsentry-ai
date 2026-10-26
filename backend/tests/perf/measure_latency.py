@@ -3,6 +3,7 @@
 Usage : python tests/perf/measure_latency.py --user admin --launch deep --target 172.30.0.0/24
 Le mot de passe est demandé (ou variable d'environnement NETSENTRY_PASSWORD). Bibliothèque standard uniquement.
 """
+
 import argparse
 import getpass
 import json
@@ -60,11 +61,14 @@ def main() -> int:
     print(f"{'Route':<24}{'médiane':>10}{'p95':>10}{'max':>10}   (ms)")
     for path, series in timings.items():
         print(
-            f"{path:<24}{statistics.median(series):>10.1f}{statistics.quantiles(series, n=20)[18]:>10.1f}{max(series):>10.1f}")
+            f"{path:<24}{statistics.median(series):>10.1f}{statistics.quantiles(series, n=20)[18]:>10.1f}{max(series):>10.1f}"
+        )
     print(f"\nGlobal : {len(everything)} requêtes, p95 = {p95:.1f} ms")
     if scan_id and (before != "running" or after != "running"):
-        print("ATTENTION : le scan n'était pas en cours pendant toute la mesure (résultat non probant). "
-              "Vérifiez que le worker tourne (docker compose logs worker) et utilisez le profil 'deep'.")
+        print(
+            "ATTENTION : le scan n'était pas en cours pendant toute la mesure (résultat non probant). "
+            "Vérifiez que le worker tourne (docker compose logs worker) et utilisez le profil 'deep'."
+        )
     ok = p95 < 500
     print("ENF-02 :", "OK (p95 < 500 ms)" if ok else "ÉCHEC (p95 >= 500 ms)")
     return 0 if ok else 1
