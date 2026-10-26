@@ -17,8 +17,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports: ["127.0.0.1:8000:8000"]
-    networks: [internal, public]
+    networks: [internal, public]  # aucun port publié : joignable seulement via le proxy
 
   worker:
     build:
@@ -33,19 +32,31 @@ services:
     cap_add: [NET_RAW, NET_ADMIN]   # uniquement ce que Nmap exige (SEC-03)
     read_only: true
     tmpfs: [/tmp]
-    mem_limit: 512m
+    mem_limit: 768m
     cpus: 1.0
     networks: [internal, lab]
 
   frontend:
     build:
       context: ./frontend
-    ports: ["127.0.0.1:8080:8080"]
     cap_drop: [ALL]
+    networks: [public]              # aucun port publié : joignable seulement via le proxy
+
+  proxy:
+    image: caddy:2-alpine
+    ports: ["8443:8443"]            # seul point d'entrée exposé aux utilisateurs
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [backend, frontend]
+    security_opt: ["no-new-privileges:true"]
     networks: [public]
 
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:
 
 networks:
   internal:
