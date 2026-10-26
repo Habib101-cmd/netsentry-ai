@@ -1,5 +1,6 @@
-# Chargé automatiquement par `docker compose up` : ouvre l'API en HTTP sur localhost:8000
-# (Swagger, curl, `npm run dev`). Démarrage sans ce fichier : docker compose -f docker-compose.yml up -d
+
+# Mode développement : API accessible uniquement depuis cette machine
 services:
   backend:
-    ports: ["8000:8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
