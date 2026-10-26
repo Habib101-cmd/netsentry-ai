@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   # Versions épinglées. Trivy : ne jamais utiliser les versions 0.69.4 à 0.69.6 (compromises en mars 2026).
